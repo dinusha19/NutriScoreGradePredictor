@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import joblib
+import os # Added for path handling
 
 # --- Configuration --- #
 nutriscore_mapping_reverse = {0.0: "A", 1.0: "B", 2.0: "C", 3.0: "D", 4.0: "E"}
@@ -59,6 +60,8 @@ st.markdown(
         font-weight: 700;
         font-size: 0.9rem;
         letter-spacing: 0.02em;
+        margin-right: 0.25rem; /* Add some spacing between pills */
+        margin-bottom: 0.25rem;
     }
     </style>
     """,
@@ -226,7 +229,27 @@ else:
     st.info("Fill in the sidebar and click **Predict Nutri-Score** to generate a result.")
 
 st.markdown("### What do the Nutri-Score grades mean?")
-st.image("/content/Nutri-score-2.png", caption="Nutri-Score Grades", use_column_width=True)
+
+# Dynamically generate HTML for the Nutri-Score legend
+# Ensure grade_colors is defined before this block if it was defined conditionally before
+grade_colors = {
+    "A": ("#15803d", "#dcfce7"),
+    "B": ("#65a30d", "#ecfccb"),
+    "C": ("#d97706", "#fef3c7"),
+    "D": ("#dc2626", "#fee2e2"),
+    "E": ("#991b1b", "#fee2e2"),
+    "Unknown": ("#374151", "#f3f4f6"),
+}
+
+legend_html = "<div style=\"display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;\">"
+for score_val in sorted(nutriscore_mapping_reverse.keys()):
+    grade = nutriscore_mapping_reverse[score_val]
+    if grade != "Unknown": # Exclude 'Unknown' from the legend
+        text_color, bg_color = grade_colors[grade]
+        legend_html += f"<span class=\"grade-pill\" style=\"color:{text_color}; background:{bg_color};\">Grade {grade}</span>"
+legend_html += "</div>"
+st.markdown(legend_html, unsafe_allow_html=True)
+
 st.markdown(
     """
     The Nutri-Score is a front-of-pack nutrition label that converts the nutritional 
