@@ -225,6 +225,22 @@ if predict_clicked:
 else:
     st.info("Fill in the sidebar and click **Predict Nutri-Score** to generate a result.")
 
+st.markdown("### What do the Nutri-Score grades mean?")
+st.image("/content/Nutri-score-2.png", caption="Nutri-Score Grades", use_column_width=True)
+st.markdown(
+    """
+    The Nutri-Score is a front-of-pack nutrition label that converts the nutritional 
+    value of products into a simple code consisting of 5 letters and 5 colors. 
+    It provides consumers with an easy way to compare the nutritional quality of foods at a glance.
+
+    *   **A (Dark Green):** Best nutritional quality.
+    *   **B (Light Green):** Good nutritional quality.
+    *   **C (Yellow):** Medium nutritional quality.
+    *   **D (Orange):** Poor nutritional quality.
+    *   **E (Red):** Poorest nutritional quality.
+    """
+)
+
 st.markdown("### Run locally")
 st.code(
     "pip install -r requirements.txt\nstreamlit run app.py",
