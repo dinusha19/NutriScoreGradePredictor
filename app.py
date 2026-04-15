@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import joblib
-import time
+# import time # Removed this import as time.sleep will be removed
 
 # --- Configuration --- #
 nutriscore_mapping_reverse = {0.0: "A", 1.0: "B", 2.0: "C", 3.0: "D", 4.0: "E"}
@@ -373,7 +373,8 @@ if sample_product != "Custom Input":
     for key, value in sample_data.items():
         st.session_state[key] = value
     st.sidebar.success(f"✅ Loaded: {sample_product}")
-    time.sleep(1.5)  # Brief pause to show success message
+    # Removed time.sleep(1.5)
+    st.rerun() # Added st.rerun() to update inputs with new session state
 
 # Nutrition values section
 with st.sidebar.expander("🥄 Nutrition Values (per 100g)", expanded=True):
@@ -475,7 +476,7 @@ if predict_clicked:
         st.sidebar.warning("⚠️ Sodium value seems high relative to salt. Double-check units.")
     
     with st.spinner("🔍 Analyzing nutritional profile..."):
-        time.sleep(0.4)  # Subtle delay for perceived performance
+        # time.sleep(0.4)  # Removed time.sleep
         
         # Calculate derived features
         fat_to_protein_ratio = fat_100g / proteins_100g if proteins_100g > 0 else 0.0
