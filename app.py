@@ -110,7 +110,7 @@ with st.sidebar.expander("Nutrition values (per 100g)", expanded=True):
         3,
         help=(
             "1 = Unprocessed/minimally processed, 2 = Processed ingredients, "
-            "3 = Processed foods, 4 = Ultra-processed."
+            "3 = Processed foods, 4 = Ultra-processed." 
         ),
     )
     energy_kcal = st.number_input("Energy (kcal)", 0.0, 900.0, 200.0, 1.0)
@@ -124,12 +124,12 @@ with st.sidebar.expander("Nutrition values (per 100g)", expanded=True):
     sodium_100g = st.number_input("Sodium (g)", 0.0, 4.0, 0.2, 0.001)
 
 with st.sidebar.expander("Allergen information", expanded=True):
-    contains_gluten = st.checkbox("Contains gluten")
-    contains_dairy = st.checkbox("Contains dairy")
-    contains_nuts = st.checkbox("Contains nuts")
-    contains_soy = st.checkbox("Contains soy")
-    contains_eggs = st.checkbox("Contains eggs")
-    contains_fish = st.checkbox("Contains fish")
+    contains_gluten = st.checkbox("🌾 Contains gluten (e.g., bread, pasta, cereals)")
+    contains_dairy = st.checkbox("🥛 Contains dairy (e.g., milk, cheese, yogurt)")
+    contains_nuts = st.checkbox("🌰 Contains nuts (e.g., almonds, walnuts, peanuts)")
+    contains_soy = st.checkbox("🌱 Contains soy (e.g., tofu, soy milk, edamame)")
+    contains_eggs = st.checkbox("🥚 Contains eggs (e.g., cakes, mayonnaise, omelets)")
+    contains_fish = st.checkbox("🐟 Contains fish (e.g., salmon, tuna, cod)")
 
 predict_clicked = st.sidebar.button("Predict Nutri-Score", use_container_width=True, type="primary")
 food_type_branded_packaged = True
@@ -214,6 +214,19 @@ if predict_clicked:
         """,
         unsafe_allow_html=True,
     )
+
+    st.markdown("### Nutri-Score Scale")
+    scale_html = "<div style=\"display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; align-items: center;\">"
+    for score_key in sorted(nutriscore_mapping_reverse.keys()):
+        if score_key != -1: # Exclude 'UNKNOWN' mapping if it exists in reverse
+            grade = nutriscore_mapping_reverse[score_key]
+            text_color_scale, bg_color_scale = grade_colors[grade]
+            extra_style = ""
+            if grade == predicted_grade:
+                extra_style = f"border: 2px solid {text_color_scale};"
+            scale_html += f"<span class=\"grade-pill\" style=\"color:{text_color_scale}; background:{bg_color_scale}; {extra_style}\">Grade {grade}</span>"
+    scale_html += "</div>"
+    st.markdown(scale_html, unsafe_allow_html=True)
 
     if predicted_grade in ["A", "B"]:
         st.success("Great nutritional profile based on the provided values.")
