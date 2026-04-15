@@ -277,6 +277,20 @@ st.markdown(
     """
 )
 
+st.markdown("### Allergen Information:")
+st.markdown(
+    """
+    Understanding common allergens is crucial for dietary restrictions and health. Here's a quick guide:
+
+    *   **🌾 Gluten:** Found in wheat, barley, and rye. Common in bread, pasta, and many processed foods.
+    *   **🥛 Dairy:** Products derived from animal milk, such as cow's milk, cheese, and yogurt.
+    *   **🌰 Nuts:** Includes tree nuts (almonds, walnuts, cashews) and peanuts. Often found in snacks, desserts, and some oils.
+    *   **🌱 Soy:** Derived from soybeans. Common in tofu, soy milk, edamame, and many vegetarian products.
+    *   **🥚 Eggs:** A common ingredient in baking, mayonnaise, and many prepared meals.
+    *   **🐟 Fish:** Includes all types of finfish, such as salmon, tuna, and cod. Often used in seafood dishes, sauces, and supplements.
+    """
+)
+
 st.markdown("### Run locally")
 st.code(
     "pip install -r requirements.txt\nstreamlit run app.py",
