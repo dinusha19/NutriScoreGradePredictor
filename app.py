@@ -134,6 +134,61 @@ with st.sidebar.expander("Allergen information", expanded=True):
 predict_clicked = st.sidebar.button("Predict Nutri-Score", use_container_width=True, type="primary")
 food_type_branded_packaged = True
 
+# Define grade_colors globally so it's accessible everywhere
+grade_colors = {
+    "A": ("#15803d", "#dcfce7"),
+    "B": ("#65a30d", "#ecfccb"),
+    "C": ("#d97706", "#fef3c7"),
+    "D": ("#dc2626", "#fee2e2"),
+    "E": ("#991b1b", "#fee2e2"),
+    "Unknown": ("#374151", "#f3f4f6"),
+}
+
+def generate_explanation(input_df, predicted_grade):
+    explanation_parts = []
+    data = input_df.iloc[0].to_dict()
+
+    # Heuristics based on general nutritional guidelines
+    # These thresholds are illustrative and can be refined
+    if data['nova_group'] >= 3:
+        explanation_parts.append(f"The product's NOVA group ({int(data['nova_group'])}, processed/ultra-processed) negatively impacts its score.")
+
+    if data['energy_kcal'] > 250: 
+        explanation_parts.append(f"High energy content ({data['energy_kcal']:.1f} kcal) is a significant factor.")
+    elif data['energy_kcal'] < 100 and predicted_grade in ['A', 'B']:
+        explanation_parts.append(f"Low energy content ({data['energy_kcal']:.1f} kcal) positively influences the score.")
+
+    if data['sugars_100g'] > 10: 
+        explanation_parts.append(f"High sugar content ({data['sugars_100g']:.1f}g) significantly contributes to the score.")
+    elif data['sugars_100g'] < 3 and predicted_grade in ['A', 'B']:
+        explanation_parts.append(f"Low sugar content ({data['sugars_100g']:.1f}g) helps improve the score.")
+
+    if data['saturated_fat_100g'] > 5: 
+        explanation_parts.append(f"Elevated saturated fat ({data['saturated_fat_100g']:.1f}g) plays a role in the score.")
+    elif data['saturated_fat_100g'] < 1 and predicted_grade in ['A', 'B']:
+        explanation_parts.append(f"Very low saturated fat ({data['saturated_fat_100g']:.1f}g) is beneficial.")
+
+    if data['salt_100g'] > 0.6: 
+        explanation_parts.append(f"Higher salt content ({data['salt_100g']:.2f}g) negatively affects the score.")
+    elif data['salt_100g'] < 0.2 and predicted_grade in ['A', 'B']:
+        explanation_parts.append(f"Low salt content ({data['salt_100g']:.2f}g) improves the score.")
+
+    if data['fiber_100g'] < 3: 
+        explanation_parts.append(f"Lower fiber content ({data['fiber_100g']:.1f}g) can reduce the score.")
+    elif data['fiber_100g'] > 5 and predicted_grade in ['A', 'B']:
+        explanation_parts.append(f"Good fiber content ({data['fiber_100g']:.1f}g) enhances the score.")
+
+    if data['proteins_100g'] < 5 and predicted_grade in ['D', 'E']: 
+        explanation_parts.append(f"Lower protein content ({data['proteins_100g']:.1f}g) contributes to a poorer score.")
+    elif data['proteins_100g'] > 10 and predicted_grade in ['A', 'B']:
+        explanation_parts.append(f"High protein content ({data['proteins_100g']:.1f}g) improves the score.")
+
+    if not explanation_parts:
+        return "Based on the provided inputs, the overall balance of nutrients contributes to this Nutri-Score."
+    else:
+        return "<p style='font-size:0.95rem; margin-top:1rem;'>Factors influencing this Nutri-Score: " + " ".join(explanation_parts) + "</p>"
+
+
 if predict_clicked:
     fat_to_protein_ratio = fat_100g / proteins_100g if proteins_100g else 0.0
     sugar_to_fiber_ratio = sugars_100g / fiber_100g if fiber_100g else 0.0
@@ -189,20 +244,12 @@ if predict_clicked:
     prediction_encoded = loaded_model_pipeline.predict(input_df)[0]
     predicted_grade = nutriscore_mapping_reverse.get(prediction_encoded, "Unknown")
 
-    grade_colors = {
-        "A": ("#15803d", "#dcfce7"),
-        "B": ("#65a30d", "#ecfccb"),
-        "C": ("#d97706", "#fef3c7"),
-        "D": ("#dc2626", "#fee2e2"),
-        "E": ("#991b1b", "#fee2e2"),
-        "Unknown": ("#374151", "#f3f4f6"),
-    }
     text_color, bg_color = grade_colors[predicted_grade]
 
     st.markdown("## Prediction Result")
     st.markdown(
         f"""
-        <div class="result-card">
+        <div class="result-card"> 
             <div style="font-size:1rem; color:#374151; margin-bottom:0.5rem;">Predicted Nutri-Score</div>
             <div style="font-size:2.1rem; font-weight:700; color:{text_color}; margin-bottom:0.5rem;">
                 Grade {predicted_grade}
@@ -228,6 +275,10 @@ if predict_clicked:
     scale_html += "</div>"
     st.markdown(scale_html, unsafe_allow_html=True)
 
+    # Add the explanation based on input values
+    st.markdown("### What influenced this score?")
+    st.markdown(generate_explanation(input_df, predicted_grade), unsafe_allow_html=True)
+
     if predicted_grade in ["A", "B"]:
         st.success("Great nutritional profile based on the provided values.")
         st.balloons()
@@ -242,17 +293,6 @@ else:
     st.info("Fill in the sidebar and click **Predict Nutri-Score** to generate a result.")
 
 st.markdown("### What do the Nutri-Score grades mean?")
-
-# Dynamically generate HTML for the Nutri-Score legend
-# Ensure grade_colors is defined before this block if it was defined conditionally before
-grade_colors = {
-    "A": ("#15803d", "#dcfce7"),
-    "B": ("#65a30d", "#ecfccb"),
-    "C": ("#d97706", "#fef3c7"),
-    "D": ("#dc2626", "#fee2e2"),
-    "E": ("#991b1b", "#fee2e2"),
-    "Unknown": ("#374151", "#f3f4f6"),
-}
 
 legend_html = "<div style=\"display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;\">"
 for score_val in sorted(nutriscore_mapping_reverse.keys()):
@@ -287,7 +327,7 @@ st.markdown(
     *   **🌰 Nuts:** Includes tree nuts (almonds, walnuts, cashews) and peanuts. Often found in snacks, desserts, and some oils.
     *   **🌱 Soy:** Derived from soybeans. Common in tofu, soy milk, edamame, and many vegetarian products.
     *   **🥚 Eggs:** A common ingredient in baking, mayonnaise, and many prepared meals.
-    *   **🐟 Fish:** Includes all types of finfish, such as salmon, tuna, and cod. Often used in seafood dishes, sauces, and supplements.
+    *   **🐟 Fish:** Includes all types of finfish, suchs as salmon, tuna, and cod. Often used in seafood dishes, sauces, and supplements.
     """
 )
 
